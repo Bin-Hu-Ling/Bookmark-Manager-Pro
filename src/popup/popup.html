@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bookmark Manager Pro</title>
+  <link rel="stylesheet" href="popup.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+  <div class="app" id="app">
+    
+    <!-- ========== 小窗模式 (Popup Mode) ========== -->
+    <div class="popup-view" id="popup-view">
+      <!-- 头部：标题 + 全屏按钮 -->
+      <header class="popup-header">
+        <h1 class="popup-title">
+          <i class="fas fa-bookmark"></i>
+          <span data-i18n="appTitle">Bookmark Manager</span>
+        </h1>
+        <button id="btn-expand" class="btn-expand" title="Expand to fullscreen">
+          <i class="fas fa-expand"></i>
+          <span data-i18n="expandFullscreen">Fullscreen</span>
+        </button>
+      </header>
+
+      <!-- 搜索框 -->
+      <div class="popup-search">
+        <div class="search-box">
+          <i class="fas fa-search"></i>
+          <input type="text" id="popup-search-input" placeholder="Search bookmarks..." data-i18n-placeholder="searchPlaceholder" autocomplete="off">
+          <button id="popup-clear-search" class="search-clear hidden">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- 文件夹树 -->
+      <div class="popup-folders">
+        <div id="popup-folder-tree" class="folder-tree">
+          <div class="folder-item active" data-id="all">
+            <i class="fas fa-layer-group"></i>
+            <span class="folder-name" data-i18n="allBookmarks">All Bookmarks</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 书签列表 (简洁版) -->
+      <div class="popup-bookmarks" id="popup-bookmarks">
+        <div class="loading-state">
+          <i class="fas fa-spinner fa-spin"></i>
+        </div>
+      </div>
+
+      <!-- 底部工具栏 -->
+      <footer class="popup-footer">
+        <div class="footer-left">
+          <button id="btn-popup-theme" class="icon-btn" title="Toggle theme">
+            <i class="fas fa-moon"></i>
+          </button>
+          <button id="btn-popup-lang" class="icon-btn" title="Switch language">
+            <i class="fas fa-language"></i>
+            <span id="popup-lang-label">EN</span>
+          </button>
+        </div>
+        <div class="footer-center">
+          <span id="popup-count" class="count-badge">0</span>
+        </div>
+        <div class="footer-right">
+          <button id="btn-popup-refresh" class="icon-btn" title="Refresh">
+            <i class="fas fa-sync-alt"></i>
+          </button>
+          <button id="btn-popup-import" class="icon-btn" title="Import">
+            <i class="fas fa-file-import"></i>
+          </button>
+          <button id="btn-popup-export" class="icon-btn" title="Export">
+            <i class="fas fa-file-export"></i>
+          </button>
+        </div>
+      </footer>
+    </div>
+
+    <!-- ========== 大屏模式 (Fullscreen Mode) ========== -->
+    <div class="fullscreen-view" id="fullscreen-view">
+      <!-- 左侧边栏 -->
+      <aside class="fs-sidebar">
+        <!-- 品牌 -->
+        <div class="fs-brand">
+          <div class="brand-row">
+            <h1 class="brand-title">
+              <i class="fas fa-bookmark"></i>
+              <span data-i18n="appTitle">Bookmark Manager</span>
+            </h1>
+          </div>
+          <div class="brand-stats">
+            <span id="fs-stat-bookmarks" class="stat-chip"><i class="fas fa-link"></i> <span>0</span></span>
+            <span id="fs-stat-folders" class="stat-chip"><i class="fas fa-folder"></i> <span>0</span></span>
+          </div>
+        </div>
+
+        <!-- 搜索 -->
+        <div class="fs-search">
+          <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" id="fs-search-input" placeholder="Search bookmarks..." data-i18n-placeholder="searchPlaceholder" autocomplete="off">
+            <button id="fs-clear-search" class="search-clear hidden">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- 文件夹 -->
+        <div class="fs-section folder-section">
+          <div class="section-header">
+            <h3 data-i18n="foldersTitle">Folders</h3>
+            <button id="btn-fs-new-folder" class="icon-btn" title="New Folder">
+              <i class="fas fa-folder-plus"></i>
+            </button>
+          </div>
+          <div id="fs-folder-tree" class="folder-tree"></div>
+        </div>
+
+        <!-- 底部 -->
+        <div class="fs-footer">
+          <button id="btn-fs-lang" class="lang-btn">
+            <i class="fas fa-language"></i>
+            <span id="fs-lang-label">EN</span>
+          </button>
+          <button id="btn-fs-theme" class="icon-btn" title="Toggle theme">
+            <i class="fas fa-moon"></i>
+          </button>
+        </div>
+      </aside>
+
+      <!-- 右侧主区域 -->
+      <main class="fs-main">
+        <!-- 顶部工具栏 -->
+        <header class="fs-header">
+          <div class="header-title">
+            <h2 id="fs-folder-title" data-i18n="allBookmarks">All Bookmarks</h2>
+            <span id="fs-result-count" class="result-count">0 bookmarks</span>
+          </div>
+          <div class="header-actions">
+            <button id="btn-fs-exit" class="btn-ghost" title="Exit fullscreen">
+              <i class="fas fa-compress"></i>
+              <span data-i18n="exitFullscreen">Exit</span>
+            </button>
+            <button id="btn-fs-select-all" class="btn-ghost">
+              <i class="far fa-check-square"></i>
+              <span data-i18n="selectAll">Select All</span>
+            </button>
+            <button id="btn-fs-batch" class="btn-ghost" disabled>
+              <i class="fas fa-edit"></i>
+              <span data-i18n="bulkEdit">Batch</span>
+            </button>
+            <button id="btn-fs-new" class="btn-primary">
+              <i class="fas fa-plus"></i>
+              <span data-i18n="newBookmark">New</span>
+            </button>
+          </div>
+        </header>
+
+        <!-- 书签表格 -->
+        <div class="fs-body">
+          <table class="bookmark-table">
+            <thead>
+              <tr>
+                <th class="col-check"><input type="checkbox" id="fs-check-all"></th>
+                <th class="col-name" data-i18n="nameColumn">Name</th>
+                <th class="col-url" data-i18n="urlColumn">URL</th>
+                <th class="col-actions" data-i18n="actionsColumn">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="fs-bookmark-tbody">
+              <tr class="loading-row">
+                <td colspan="4">
+                  <div class="loading-state">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <span data-i18n="loadingBookmarks">Loading...</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div id="fs-empty-state" class="empty-state hidden">
+            <i class="fas fa-bookmark"></i>
+            <h3 data-i18n="noBookmarks">No bookmarks found</h3>
+            <p data-i18n="noBookmarksDesc">Try adjusting your search</p>
+          </div>
+        </div>
+
+        <!-- 底部状态栏 -->
+        <footer class="fs-statusbar">
+          <div class="status-left">
+            <span id="fs-selected-count">0 selected</span>
+            <span class="divider">·</span>
+            <span id="fs-total-count">0 total</span>
+          </div>
+          <div class="status-right">
+            <button id="btn-fs-import" class="icon-btn" title="Import">
+              <i class="fas fa-file-import"></i>
+            </button>
+            <button id="btn-fs-export" class="icon-btn" title="Export">
+              <i class="fas fa-file-export"></i>
+            </button>
+            <button id="btn-fs-refresh" class="icon-btn" title="Refresh">
+              <i class="fas fa-sync-alt"></i>
+            </button>
+          </div>
+        </footer>
+      </main>
+    </div>
+
+    <!-- ========== 模态框 (共享) ========== -->
+    <!-- 编辑书签 -->
+    <div id="modal-edit" class="modal" role="dialog" aria-hidden="true">
+      <div class="modal-backdrop"></div>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="modal-edit-title" data-i18n="editBookmarkTitle">Edit Bookmark</h3>
+          <button class="modal-close" aria-label="Close"><i class="fas fa-times"></i></button>
+        </div>
+        <form id="form-bookmark" class="modal-body">
+          <input type="hidden" id="edit-bookmark-id">
+          <div class="form-group">
+            <label for="edit-title" data-i18n="nameLabel">Name</label>
+            <input type="text" id="edit-title" required placeholder="Bookmark title">
+          </div>
+          <div class="form-group">
+            <label for="edit-url" data-i18n="urlLabel">URL</label>
+            <input type="url" id="edit-url" required placeholder="https://example.com">
+          </div>
+          <div class="form-group">
+            <label for="edit-folder" data-i18n="folderLabel">Folder</label>
+            <select id="edit-folder"></select>
+          </div>
+        </form>
+        <div class="modal-footer">
+          <button type="button" class="btn-ghost modal-cancel" data-i18n="cancel">Cancel</button>
+          <button type="submit" form="form-bookmark" class="btn-primary" data-i18n="save">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 编辑文件夹 -->
+    <div id="modal-folder" class="modal" role="dialog" aria-hidden="true">
+      <div class="modal-backdrop"></div>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 id="modal-folder-title">New Folder</h3>
+          <button class="modal-close" aria-label="Close"><i class="fas fa-times"></i></button>
+        </div>
+        <form id="form-folder" class="modal-body">
+          <input type="hidden" id="edit-folder-id">
+          <div class="form-group">
+            <label for="edit-folder-name">Folder Name</label>
+            <input type="text" id="edit-folder-name" required placeholder="Folder name">
+          </div>
+          <div class="form-group">
+            <label for="edit-folder-parent">Parent Folder</label>
+            <select id="edit-folder-parent"></select>
+          </div>
+        </form>
+        <div class="modal-footer">
+          <button type="button" class="btn-ghost modal-cancel">Cancel</button>
+          <button type="submit" form="form-folder" class="btn-primary">Create</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 批量操作 -->
+    <div id="modal-batch" class="modal" role="dialog" aria-hidden="true">
+      <div class="modal-backdrop"></div>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 data-i18n="bulkEdit">Batch Edit</h3>
+          <button class="modal-close" aria-label="Close"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+          <p class="batch-info" id="batch-info">0 bookmarks selected</p>
+          <div class="form-group">
+            <label>Move to Folder</label>
+            <select id="batch-move-folder" class="filter-select">
+              <option value="">-- Select folder --</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-ghost modal-cancel" data-i18n="cancel">Cancel</button>
+          <button type="button" id="btn-batch-delete" class="btn-danger" data-i18n="delete">Delete</button>
+          <button type="button" id="btn-batch-apply" class="btn-primary" data-i18n="save">Apply</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 确认对话框 -->
+    <div id="modal-confirm" class="modal" role="dialog" aria-hidden="true">
+      <div class="modal-backdrop"></div>
+      <div class="modal-content modal-sm">
+        <div class="modal-header">
+          <h3 id="confirm-title">Confirm</h3>
+          <button class="modal-close" aria-label="Close"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+          <p id="confirm-message">Are you sure?</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-ghost modal-cancel" data-i18n="cancel">Cancel</button>
+          <button type="button" id="btn-confirm-ok" class="btn-danger" data-i18n="delete">Delete</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast 通知 -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- 隐藏的文件输入 -->
+    <input type="file" id="import-file-input" accept=".json,.html" class="hidden">
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

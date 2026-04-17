@@ -1,0 +1,44 @@
+{
+  "manifest_version": 3,
+  "name": "Bookmark Manager Pro",
+  "version": "2.0.0",
+  "description": "Advanced bookmark manager with tags, search, dark theme, and batch operations",
+  "permissions": ["bookmarks", "storage", "tabs"],
+  "host_permissions": ["<all_urls>"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Bookmark Manager",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "commands": {
+    "_execute_action": {
+      "suggested_key": { "default": "Ctrl+Shift+B", "mac": "Command+Shift+B" },
+      "description": "Open Bookmark Manager"
+    },
+    "search_bookmarks": {
+      "suggested_key": { "default": "Ctrl+Shift+F", "mac": "Command+Shift+F" },
+      "description": "Search bookmarks"
+    }
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
+  "web_accessible_resources": [
+    { "resources": ["icons/*", "popup.html"], "matches": ["<all_urls>"] }
+  ]
+}

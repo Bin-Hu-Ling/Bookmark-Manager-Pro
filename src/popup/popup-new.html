@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bookmark Manager</title>
+  <link rel="stylesheet" href="popup-new.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- 左侧导航侧边栏 -->
+    <aside class="nav-sidebar">
+      <!-- 品牌/统计区 -->
+      <div class="brand-section">
+        <div class="brand-header">
+          <h1 class="app-title">
+            <i class="fas fa-bookmark"></i>
+            <span id="app-title">Bookmark Manager</span>
+          </h1>
+          <div class="header-actions">
+            <button id="fullscreen-toggle" class="icon-btn" title="Toggle fullscreen" data-i18n-title="toggleFullscreen">
+              <i class="fas fa-expand"></i>
+            </button>
+          </div>
+        </div>
+        <div class="stats-bar">
+          <span class="stat-item" id="bookmark-count">207 Bookmarks</span>
+          <span class="stat-separator">·</span>
+          <span class="stat-item" id="folder-count">27 Folders</span>
+        </div>
+      </div>
+
+      <!-- 搜索框 -->
+      <div class="search-section">
+        <div class="search-box">
+          <i class="fas fa-search"></i>
+          <input type="text" id="search-input" placeholder="Search..." data-i18n-placeholder="searchPlaceholder">
+          <button id="clear-search" class="search-clear" title="Clear search" data-i18n-title="clearSearch">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- 文件夹树 -->
+      <div class="folders-section">
+        <div class="section-header">
+          <h3 data-i18n="foldersTitle">Folders</h3>
+          <button id="new-folder-btn" class="icon-btn" title="New Folder" data-i18n-title="newFolder">
+            <i class="fas fa-plus"></i>
+          </button>
+        </div>
+        <div id="folders-tree" class="folders-tree">
+          <!-- 文件夹树将通过JavaScript动态生成 -->
+          <div class="folder-item" data-id="all">
+            <i class="fas fa-folder-open"></i>
+            <span class="folder-name" data-i18n="allBookmarks">All Bookmarks</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 标签区 -->
+      <div class="tags-section">
+        <div class="section-header">
+          <h3 data-i18n="tagsTitle">Tags</h3>
+          <button id="add-tag-btn" class="icon-btn" title="Add Tag" data-i18n-title="addTag">
+            <i class="fas fa-plus"></i>
+          </button>
+        </div>
+        <div id="tags-list" class="tags-list">
+          <!-- 标签将通过JavaScript动态生成 -->
+          <div class="tag-pill active" data-tag="">
+            <span class="tag-name" data-i18n="allTags">All Tags</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 语言切换按钮 -->
+      <div class="sidebar-footer">
+        <button id="language-btn" class="language-btn">
+          <i class="fas fa-language"></i>
+          <span class="language-text" data-i18n="language">Language</span>
+          <span class="language-badge" id="current-language">EN</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- 右侧工作区 -->
+    <main class="workspace">
+      <!-- 顶部操作栏 -->
+      <header class="workspace-header">
+        <div class="header-left">
+          <h2 class="current-folder" id="current-folder-title" data-i18n="allBookmarks">All Bookmarks</h2>
+        </div>
+        <div class="header-right">
+          <!-- 筛选下拉菜单 -->
+          <div class="filter-dropdown">
+            <select id="tag-filter" class="filter-select">
+              <option value="" data-i18n="filterByTag">Filter by Tag</option>
+            </select>
+          </div>
+          
+          <!-- 主操作按钮 -->
+          <div class="action-buttons">
+            <button id="new-bookmark" class="btn-primary" data-i18n="newBookmark">
+              <i class="fas fa-plus"></i>
+              <span>New Bookmark</span>
+            </button>
+            <button id="bulk-edit" class="btn-secondary" disabled data-i18n="bulkEdit" data-i18n-title="bulkEditTooltip">
+              <i class="fas fa-edit"></i>
+              <span>Bulk Edit</span>
+            </button>
+          </div>
+          
+          <!-- 全选复选框 -->
+          <div class="select-all">
+            <input type="checkbox" id="select-all-checkbox">
+            <button id="select-all-btn" class="btn-text" data-i18n="selectAll">Select All</button>
+          </div>
+        </div>
+      </header>
+
+      <!-- 书签列表 -->
+      <div class="bookmarks-table-container">
+        <table class="bookmarks-table">
+          <thead>
+            <tr>
+              <th class="checkbox-col">
+                <input type="checkbox" id="table-select-all">
+              </th>
+              <th class="name-col" data-i18n="nameColumn">Name</th>
+              <th class="url-col" data-i18n="urlColumn">URL</th>
+              <th class="tags-col" data-i18n="tagsColumn">Tags</th>
+              <th class="actions-col" data-i18n="actionsColumn">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="bookmarks-table-body">
+            <!-- 书签将通过JavaScript动态生成 -->
+            <tr class="loading-row">
+              <td colspan="5">
+                <div class="loading-state">
+                  <i class="fas fa-spinner fa-spin"></i>
+                  <span data-i18n="loadingBookmarks">Loading bookmarks...</span>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        
+        <!-- 空状态 -->
+        <div id="empty-state" class="empty-state" style="display: none;">
+          <i class="fas fa-bookmark"></i>
+          <h3 data-i18n="noBookmarks">No bookmarks found</h3>
+          <p data-i18n="noBookmarksDesc">Try adding a new bookmark or adjusting your filters</p>
+        </div>
+      </div>
+
+      <!-- 底部状态栏 -->
+      <footer class="workspace-footer">
+        <div class="footer-left">
+          <span id="selected-count">0 selected</span>
+          <span> • </span>
+          <span id="total-count">0 bookmarks</span>
+        </div>
+        <div class="footer-right">
+          <button id="refresh-btn" class="icon-btn" title="Refresh" data-i18n-title="refresh">
+            <i class="fas fa-sync-alt"></i>
+          </button>
+          <button id="settings-btn" class="icon-btn" title="Settings" data-i18n-title="settings">
+            <i class="fas fa-cog"></i>
+          </button>
+        </div>
+      </footer>
+    </main>
+
+    <!-- 模态框 -->
+    <div id="edit-modal" class="modal">
+      <div class="modal-content">
+        <h3 data-i18n="editBookmarkTitle">Edit Bookmark</h3>
+        <!-- 表单将通过JavaScript动态生成 -->
+      </div>
+    </div>
+
+    <div id="tag-modal" class="modal">
+      <div class="modal-content">
+        <h3 data-i18n="manageTagsTitle">Manage Tags</h3>
+        <!-- 标签管理UI将通过JavaScript动态生成 -->
+      </div>
+    </div>
+  </div>
+
+  <script src="popup-new.js"></script>
+</body>
+</html>
