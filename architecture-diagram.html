@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bookmark Manager Pro Architecture</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f7fbff;
+      --panel: #ffffff;
+      --ink: #172033;
+      --muted: #65758b;
+      --line: #c9d9ea;
+      --blue: #2f7ee6;
+      --cyan: #0891b2;
+      --green: #119c72;
+      --amber: #d88706;
+      --rose: #dc4a68;
+      --violet: #7c5dd8;
+      --shadow: 0 20px 60px rgba(44, 84, 132, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 12% 8%, rgba(104, 197, 255, 0.24), transparent 30%),
+        radial-gradient(circle at 88% 12%, rgba(137, 221, 199, 0.26), transparent 28%),
+        linear-gradient(180deg, #f7fbff 0%, #eef7fb 100%);
+      font-family: "JetBrains Mono", Consolas, "Courier New", monospace;
+      padding: 28px;
+    }
+
+    .page {
+      max-width: 1220px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      align-items: flex-end;
+      margin-bottom: 18px;
+    }
+
+    .title-wrap {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .pulse {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      background: #25b99a;
+      box-shadow: 0 0 0 8px rgba(37, 185, 154, 0.16);
+      animation: pulse 1.8s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.25); opacity: 0.7; }
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 25px;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 7px 0 0 24px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 11px;
+      text-align: right;
+      line-height: 1.6;
+    }
+
+    .diagram-card,
+    .summary-card {
+      border: 1px solid rgba(148, 176, 204, 0.45);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.82);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+    }
+
+    .diagram-card {
+      padding: 18px;
+      overflow-x: auto;
+    }
+
+    svg {
+      display: block;
+      width: 100%;
+      min-width: 1120px;
+      height: auto;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .summary-card {
+      padding: 16px 18px;
+    }
+
+    .summary-card h3 {
+      margin: 0 0 10px;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      display: inline-block;
+    }
+
+    ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.75;
+    }
+
+    footer {
+      color: var(--muted);
+      font-size: 10px;
+      text-align: center;
+      margin-top: 16px;
+    }
+
+    @media (max-width: 760px) {
+      body {
+        padding: 16px;
+      }
+
+      header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .meta {
+        text-align: left;
+      }
+
+      .summary {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <div>
+        <div class="title-wrap">
+          <span class="pulse"></span>
+          <h1>Bookmark Manager Pro 系统架构图</h1>
+        </div>
+        <p class="subtitle">Manifest V3 浏览器扩展：Popup UI、Background Service Worker、Chrome/Edge API、Storage 与构建依赖关系。</p>
+      </div>
+      <div class="meta">
+        Runtime: Chrome / Edge MV3<br>
+        Build: Webpack + CopyWebpackPlugin
+      </div>
+    </header>
+
+    <section class="diagram-card" aria-label="Bookmark Manager Pro architecture diagram">
+      <svg viewBox="0 0 1160 820" role="img" aria-labelledby="diagram-title diagram-desc">
+        <title id="diagram-title">Bookmark Manager Pro architecture and dependency diagram</title>
+        <desc id="diagram-desc">A light themed SVG diagram showing build inputs, extension runtime, popup UI, background service worker, Chrome APIs, and storage dependencies.</desc>
+
+        <defs>
+          <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+            <path d="M 32 0 L 0 0 0 32" fill="none" stroke="#dceaf7" stroke-width="0.8"/>
+          </pattern>
+          <marker id="arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+            <path d="M 0 0 L 10 4 L 0 8 Z" fill="#6b85a2"/>
+          </marker>
+          <marker id="arrow-blue" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+            <path d="M 0 0 L 10 4 L 0 8 Z" fill="#2f7ee6"/>
+          </marker>
+          <filter id="soft-shadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#5c7da6" flood-opacity="0.16"/>
+          </filter>
+        </defs>
+
+        <rect width="1160" height="820" rx="14" fill="#f8fcff"/>
+        <rect width="1160" height="820" fill="url(#grid)" opacity="0.75"/>
+
+        <!-- Arrow layer -->
+        <g fill="none" stroke="#6b85a2" stroke-width="1.7" marker-end="url(#arrow)">
+          <path d="M 186 129 C 250 129, 265 120, 323 120"/>
+          <path d="M 186 212 C 250 212, 264 227, 323 227"/>
+          <path d="M 186 295 C 250 295, 264 274, 323 274"/>
+          <path d="M 500 120 C 548 120, 558 158, 606 158"/>
+          <path d="M 500 227 C 550 227, 558 198, 606 198"/>
+          <path d="M 500 274 C 548 274, 558 238, 606 238"/>
+          <path d="M 685 260 C 685 300, 654 312, 654 350"/>
+          <path d="M 740 420 C 818 420, 832 375, 908 375"/>
+          <path d="M 740 420 C 817 420, 831 456, 908 456"/>
+          <path d="M 740 420 C 814 420, 830 536, 908 536"/>
+          <path d="M 740 420 C 810 420, 830 616, 908 616"/>
+          <path d="M 654 490 C 654 528, 626 553, 588 553"/>
+          <path d="M 172 572 C 250 572, 318 553, 400 553"/>
+          <path d="M 172 665 C 268 665, 330 634, 384 634"/>
+          <path d="M 604 634 C 704 634, 782 522, 740 456"/>
+        </g>
+
+        <g fill="none" stroke="#2f7ee6" stroke-width="2" marker-end="url(#arrow-blue)">
+          <path d="M 340 454 C 422 454, 486 454, 568 454"/>
+        </g>
+
+        <g fill="none" stroke="#dc4a68" stroke-width="1.7" stroke-dasharray="6 5" marker-end="url(#arrow)">
+          <path d="M 654 490 C 690 575, 760 690, 908 690"/>
+        </g>
+
+        <!-- Boundaries -->
+        <rect x="28" y="54" width="1104" height="270" rx="16" fill="rgba(231, 244, 255, 0.56)" stroke="#9fc8ee" stroke-width="1.5" stroke-dasharray="8 5"/>
+        <text x="48" y="82" fill="#2f6695" font-size="12" font-weight="700">BUILD PIPELINE</text>
+
+        <rect x="28" y="350" width="1104" height="370" rx="16" fill="rgba(240, 250, 247, 0.72)" stroke="#9fd9cb" stroke-width="1.5" stroke-dasharray="8 5"/>
+        <text x="48" y="378" fill="#19715e" font-size="12" font-weight="700">EXTENSION RUNTIME</text>
+
+        <!-- Build layer -->
+        <g filter="url(#soft-shadow)">
+          <rect x="64" y="100" width="122" height="58" rx="8" fill="#ffffff" stroke="#2f7ee6" stroke-width="1.5"/>
+          <text x="125" y="124" text-anchor="middle" fill="#172033" font-size="12" font-weight="700">popup.js</text>
+          <text x="125" y="143" text-anchor="middle" fill="#65758b" font-size="9">UI entry</text>
+
+          <rect x="64" y="183" width="122" height="58" rx="8" fill="#ffffff" stroke="#0891b2" stroke-width="1.5"/>
+          <text x="125" y="207" text-anchor="middle" fill="#172033" font-size="12" font-weight="700">popup.html/css</text>
+          <text x="125" y="226" text-anchor="middle" fill="#65758b" font-size="9">copied assets</text>
+
+          <rect x="64" y="266" width="122" height="58" rx="8" fill="#ffffff" stroke="#119c72" stroke-width="1.5"/>
+          <text x="125" y="290" text-anchor="middle" fill="#172033" font-size="12" font-weight="700">background.js</text>
+          <text x="125" y="309" text-anchor="middle" fill="#65758b" font-size="9">service worker</text>
+
+          <rect x="323" y="88" width="177" height="68" rx="8" fill="#ffffff" stroke="#7c5dd8" stroke-width="1.5"/>
+          <text x="411.5" y="113" text-anchor="middle" fill="#172033" font-size="12" font-weight="700">Webpack Entry</text>
+          <text x="411.5" y="133" text-anchor="middle" fill="#65758b" font-size="9">popup + background bundles</text>
+
+          <rect x="323" y="198" width="177" height="102" rx="8" fill="#ffffff" stroke="#d88706" stroke-width="1.5"/>
+          <text x="411.5" y="225" text-anchor="middle" fill="#172033" font-size="12" font-weight="700">CopyWebpackPlugin</text>
+          <text x="411.5" y="247" text-anchor="middle" fill="#65758b" font-size="9">manifest.dist.json</text>
+          <text x="411.5" y="265" text-anchor="middle" fill="#65758b" font-size="9">popup.html / popup.css</text>
+          <text x="411.5" y="283" text-anchor="middle" fill="#65758b" font-size="9">icons.css / icons</text>
+
+          <rect x="606" y="128" width="158" height="132" rx="10" fill="#ffffff" stroke="#2f7ee6" stroke-width="1.7"/>
+          <text x="685" y="156" text-anchor="middle" fill="#172033" font-size="13" font-weight="700">dist/</text>
+          <text x="685" y="179" text-anchor="middle" fill="#65758b" font-size="9">popup.js</text>
+          <text x="685" y="197" text-anchor="middle" fill="#65758b" font-size="9">background.js</text>
+          <text x="685" y="215" text-anchor="middle" fill="#65758b" font-size="9">manifest.json</text>
+          <text x="685" y="233" text-anchor="middle" fill="#65758b" font-size="9">static assets</text>
+
+          <rect x="908" y="150" width="154" height="86" rx="10" fill="#ffffff" stroke="#119c72" stroke-width="1.7"/>
+          <text x="985" y="181" text-anchor="middle" fill="#172033" font-size="13" font-weight="700">Unpacked Extension</text>
+          <text x="985" y="204" text-anchor="middle" fill="#65758b" font-size="9">Chrome / Edge loads dist</text>
+        </g>
+
+        <path d="M 764 194 C 818 194, 850 193, 908 193" fill="none" stroke="#6b85a2" stroke-width="1.7" marker-end="url(#arrow)"/>
+
+        <!-- Runtime layer -->
+        <g filter="url(#soft-shadow)">
+          <rect x="64" y="400" width="276" height="116" rx="10" fill="#ffffff" stroke="#2f7ee6" stroke-width="1.8"/>
+          <text x="202" y="428" text-anchor="middle" fill="#172033" font-size="13" font-weight="700">Popup UI</text>
+          <text x="202" y="451" text-anchor="middle" fill="#65758b" font-size="9">popup.html + popup.css + icons.css</text>
+          <text x="202" y="470" text-anchor="middle" fill="#65758b" font-size="9">dual mode: popup / fullscreen tab</text>
+          <text x="202" y="489" text-anchor="middle" fill="#65758b" font-size="9">local search index + render state</text>
+
+          <rect x="568" y="350" width="172" height="140" rx="10" fill="#ffffff" stroke="#119c72" stroke-width="1.8"/>
+          <text x="654" y="379" text-anchor="middle" fill="#172033" font-size="13" font-weight="700">Background SW</text>
+          <text x="654" y="403" text-anchor="middle" fill="#65758b" font-size="9">runtime.onMessage router</text>
+          <text x="654" y="422" text-anchor="middle" fill="#65758b" font-size="9">bookmark CRUD / tags</text>
+          <text x="654" y="441" text-anchor="middle" fill="#65758b" font-size="9">import / export / settings</text>
+          <text x="654" y="460" text-anchor="middle" fill="#65758b" font-size="9">bookmark event listeners</text>
+
+          <rect x="400" y="514" width="188" height="78" rx="8" fill="#ffffff" stroke="#0891b2" stroke-width="1.5"/>
+          <text x="494" y="543" text-anchor="middle" fill="#172033" font-size="12" font-weight="700">Reusable Components</text>
+          <text x="494" y="565" text-anchor="middle" fill="#65758b" font-size="9">Search / Tree / Batch</text>
+          <text x="494" y="582" text-anchor="middle" fill="#65758b" font-size="9">Tags / Drag / Stats</text>
+
+          <rect x="64" y="548" width="108" height="48" rx="8" fill="#ffffff" stroke="#0891b2" stroke-width="1.4"/>
+          <text x="118" y="577" text-anchor="middle" fill="#172033" font-size="11" font-weight="700">languages.js</text>
+
+          <rect x="64" y="640" width="108" height="50" rx="8" fill="#ffffff" stroke="#7c5dd8" stroke-width="1.4"/>
+          <text x="118" y="670" text-anchor="middle" fill="#172033" font-size="11" font-weight="700">Verification</text>
+          <text x="118" y="684" text-anchor="middle" fill="#65758b" font-size="8">lint / build / scripts</text>
+
+          <rect x="908" y="342" width="156" height="66" rx="8" fill="#ffffff" stroke="#2f7ee6" stroke-width="1.5"/>
+          <text x="986" y="369" text-anchor="middle" fill="#172033" font-size="12" font-weight="700">bookmarks API</text>
+          <text x="986" y="389" text-anchor="middle" fill="#65758b" font-size="9">tree / search / CRUD</text>
+
+          <rect x="908" y="424" width="156" height="66" rx="8" fill="#ffffff" stroke="#7c5dd8" stroke-width="1.5"/>
+          <text x="986" y="451" text-anchor="middle" fill="#172033" font-size="12" font-weight="700">storage API</text>
+          <text x="986" y="471" text-anchor="middle" fill="#65758b" font-size="9">local + sync settings</text>
+
+          <rect x="908" y="504" width="156" height="66" rx="8" fill="#ffffff" stroke="#d88706" stroke-width="1.5"/>
+          <text x="986" y="531" text-anchor="middle" fill="#172033" font-size="12" font-weight="700">downloads API</text>
+          <text x="986" y="551" text-anchor="middle" fill="#65758b" font-size="9">export JSON files</text>
+
+          <rect x="908" y="584" width="156" height="66" rx="8" fill="#ffffff" stroke="#0891b2" stroke-width="1.5"/>
+          <text x="986" y="611" text-anchor="middle" fill="#172033" font-size="12" font-weight="700">tabs API</text>
+          <text x="986" y="631" text-anchor="middle" fill="#65758b" font-size="9">open links / fullscreen</text>
+
+          <rect x="908" y="670" width="156" height="48" rx="8" fill="#fff9fb" stroke="#dc4a68" stroke-width="1.5"/>
+          <text x="986" y="699" text-anchor="middle" fill="#172033" font-size="12" font-weight="700">MV3 CSP</text>
+        </g>
+
+        <rect x="584" y="520" width="140" height="28" rx="14" fill="#fff7e8" stroke="#d88706" stroke-width="1.2"/>
+        <text x="654" y="538" text-anchor="middle" fill="#9a6100" font-size="8" font-weight="700">chrome.runtime messages</text>
+
+        <rect x="428" y="438" width="86" height="22" rx="11" fill="#eef6ff" stroke="#8fc1f4" stroke-width="1"/>
+        <text x="471" y="453" text-anchor="middle" fill="#2f6695" font-size="8" font-weight="700">sendMessage</text>
+
+        <rect x="770" y="384" width="88" height="22" rx="11" fill="#eefbf7" stroke="#9fd9cb" stroke-width="1"/>
+        <text x="814" y="399" text-anchor="middle" fill="#19715e" font-size="8" font-weight="700">Chrome APIs</text>
+
+        <rect x="660" y="294" width="92" height="22" rx="11" fill="#eef6ff" stroke="#8fc1f4" stroke-width="1"/>
+        <text x="706" y="309" text-anchor="middle" fill="#2f6695" font-size="8" font-weight="700">loaded by MV3</text>
+
+        <rect x="384" y="610" width="220" height="46" rx="9" fill="#f3f0ff" stroke="#7c5dd8" stroke-width="1.3"/>
+        <text x="494" y="637" text-anchor="middle" fill="#5c46ad" font-size="10" font-weight="700">shared manager pattern</text>
+
+        <!-- Legend outside boundaries -->
+        <g transform="translate(64 750)">
+          <text x="0" y="0" fill="#405571" font-size="11" font-weight="700">Legend</text>
+          <rect x="0" y="16" width="18" height="10" rx="3" fill="#ffffff" stroke="#2f7ee6"/>
+          <text x="26" y="25" fill="#65758b" font-size="9">UI / bundle</text>
+          <rect x="140" y="16" width="18" height="10" rx="3" fill="#ffffff" stroke="#119c72"/>
+          <text x="166" y="25" fill="#65758b" font-size="9">background logic</text>
+          <rect x="320" y="16" width="18" height="10" rx="3" fill="#ffffff" stroke="#7c5dd8"/>
+          <text x="346" y="25" fill="#65758b" font-size="9">storage / shared module</text>
+          <line x1="548" y1="21" x2="602" y2="21" stroke="#6b85a2" stroke-width="1.7" marker-end="url(#arrow)"/>
+          <text x="614" y="25" fill="#65758b" font-size="9">dependency / data flow</text>
+          <line x1="800" y1="21" x2="854" y2="21" stroke="#dc4a68" stroke-width="1.7" stroke-dasharray="6 5" marker-end="url(#arrow)"/>
+          <text x="866" y="25" fill="#65758b" font-size="9">security boundary</text>
+        </g>
+      </svg>
+    </section>
+
+    <section class="summary">
+      <article class="summary-card">
+        <h3><span class="dot" style="background:#2f7ee6"></span>运行时主链路</h3>
+        <ul>
+          <li>Popup UI 负责状态、搜索、渲染和用户操作。</li>
+          <li>后台 Service Worker 通过消息路由处理书签、标签、导入导出。</li>
+          <li>Chrome/Edge APIs 是唯一外部运行时依赖。</li>
+        </ul>
+      </article>
+
+      <article class="summary-card">
+        <h3><span class="dot" style="background:#119c72"></span>数据与缓存</h3>
+        <ul>
+          <li>bookmarks API 提供书签树、搜索与 CRUD。</li>
+          <li>storage.local 保存标签库、缓存书签、搜索语言等本地状态。</li>
+          <li>storage.sync 保存可同步的设置项。</li>
+        </ul>
+      </article>
+
+      <article class="summary-card">
+        <h3><span class="dot" style="background:#d88706"></span>构建与交付</h3>
+        <ul>
+          <li>Webpack 打包 popup.js 与 background.js。</li>
+          <li>CopyWebpackPlugin 复制 manifest、HTML、CSS 与图标。</li>
+          <li>dist/ 作为 Chrome/Edge unpacked extension 加载目录。</li>
+        </ul>
+      </article>
+    </section>
+
+    <footer>
+      Generated for Bookmark Manager Pro · Manifest V3 · local-only architecture snapshot
+    </footer>
+  </main>
+</body>
+</html>
