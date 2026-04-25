@@ -7,27 +7,28 @@
 /* ====== 主题变量 ====== */
 :root,
 [data-theme="light"] {
-  --c-primary: #5b5fc7;
-  --c-primary-hover: #4f46e5;
-  --c-primary-light: rgba(91, 95, 199, 0.08);
-  --c-primary-focus: rgba(91, 95, 199, 0.15);
-  --c-primary-soft: rgba(91, 95, 199, 0.06);
+  --c-primary: #305c52;
+  --c-primary-hover: #24483f;
+  --c-primary-light: rgba(48, 92, 82, 0.1);
+  --c-primary-focus: rgba(48, 92, 82, 0.18);
+  --c-primary-soft: rgba(48, 92, 82, 0.07);
+  --c-accent: #d88a24;
 
-  --c-bg-base: #f4f5f9;
+  --c-bg-base: #f5f3ec;
   --c-bg-surface: #ffffff;
   --c-bg-elevated: #ffffff;
   --c-bg-overlay: rgba(15, 17, 23, 0.45);
   --c-bg-hover: rgba(0, 0, 0, 0.04);
   --c-bg-active: rgba(91, 95, 199, 0.08);
-  --c-bg-sidebar: #fafafe;
+  --c-bg-sidebar: #fbfaf5;
 
   --c-text-primary: #1e1f25;
   --c-text-secondary: #5f6368;
   --c-text-tertiary: #9aa0ab;
   --c-text-inverse: #ffffff;
 
-  --c-border: #e8eaef;
-  --c-border-strong: #d0d3db;
+  --c-border: #e7e1d5;
+  --c-border-strong: #cfc5b6;
 
   --c-success: #22c55e;
   --c-warning: #f59e0b;
@@ -51,27 +52,28 @@
 }
 
 [data-theme="dark"] {
-  --c-primary: #8b8ff5;
-  --c-primary-hover: #7175ec;
-  --c-primary-light: rgba(139, 143, 245, 0.1);
-  --c-primary-focus: rgba(139, 143, 245, 0.2);
-  --c-primary-soft: rgba(139, 143, 245, 0.06);
+  --c-primary: #7dd3c0;
+  --c-primary-hover: #5cbba7;
+  --c-primary-light: rgba(125, 211, 192, 0.12);
+  --c-primary-focus: rgba(125, 211, 192, 0.22);
+  --c-primary-soft: rgba(125, 211, 192, 0.08);
+  --c-accent: #f2a93b;
 
-  --c-bg-base: #0e1015;
-  --c-bg-surface: #181a22;
-  --c-bg-elevated: #1f2130;
+  --c-bg-base: #101312;
+  --c-bg-surface: #181d1b;
+  --c-bg-elevated: #202723;
   --c-bg-overlay: rgba(0, 0, 0, 0.6);
   --c-bg-hover: rgba(255, 255, 255, 0.05);
   --c-bg-active: rgba(139, 143, 245, 0.1);
-  --c-bg-sidebar: #14161e;
+  --c-bg-sidebar: #141917;
 
   --c-text-primary: #eef0f4;
   --c-text-secondary: #a0a4b2;
   --c-text-tertiary: #6b7085;
   --c-text-inverse: #0e1015;
 
-  --c-border: #282a38;
-  --c-border-strong: #3a3d52;
+  --c-border: #2a322f;
+  --c-border-strong: #3b4742;
 
   --c-success: #34d399;
   --c-warning: #fbbf24;
@@ -98,7 +100,7 @@ html {
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  font-family: Aptos, 'Segoe UI Variable', 'Segoe UI', sans-serif;
   line-height: 1.5;
   color: var(--c-text-primary);
   background: var(--c-bg-base);
@@ -120,6 +122,20 @@ body.fullscreen-mode {
 }
 
 .hidden { display: none !important; }
+
+.fa,
+.far,
+.fas {
+  font-size: 1em;
+}
+
+button,
+[role="button"],
+.folder-item,
+.bookmark-item,
+tr {
+  -webkit-tap-highlight-color: transparent;
+}
 
 /* ====== 应用容器 ====== */
 .app {
@@ -169,8 +185,10 @@ body.popup-mode .popup-view {
 .btn-expand {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 5px 12px;
+  justify-content: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 12px;
   background: var(--c-primary-light);
   border: 1px solid rgba(91, 95, 199, 0.15);
   border-radius: var(--radius-md);
@@ -178,7 +196,7 @@ body.popup-mode .popup-view {
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
   white-space: nowrap;
 }
 
@@ -186,16 +204,11 @@ body.popup-mode .popup-view {
   background: var(--c-primary);
   color: #fff;
   border-color: var(--c-primary);
-  transform: translateY(-1px);
-  box-shadow: 0 3px 10px rgba(91, 95, 199, 0.25);
-}
-
-.btn-expand:active {
-  transform: translateY(0);
+  box-shadow: 0 3px 10px rgba(48, 92, 82, 0.22);
 }
 
 .btn-expand i {
-  font-size: 11px;
+  font-size: 13px;
 }
 
 /* 小窗搜索 */
@@ -315,14 +328,19 @@ body.popup-mode .popup-view {
 
 /* 文件夹操作按钮 - hover时显示 */
 .folder-actions {
-  display: none;
+  display: flex;
   gap: 2px;
   margin-left: auto;
   flex-shrink: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
 }
 
-.folder-item:hover .folder-actions {
-  display: flex;
+.folder-item:hover .folder-actions,
+.folder-item:focus-within .folder-actions {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .folder-action-btn {
@@ -330,14 +348,14 @@ body.popup-mode .popup-view {
   border: none;
   color: var(--c-text-tertiary);
   cursor: pointer;
-  width: 22px;
-  height: 22px;
+  width: 28px;
+  height: 28px;
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
-  transition: all 0.15s;
+  font-size: 13px;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .folder-action-btn:hover {
@@ -353,6 +371,7 @@ body.popup-mode .popup-view {
 .folder-item i {
   font-size: 13px;
   width: 16px;
+  height: 16px;
   text-align: center;
   transition: color 0.15s;
 }
@@ -503,6 +522,32 @@ body.popup-mode .popup-view {
   line-height: 1.3;
 }
 
+.popup-bookmark-folder {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  font-size: 11px;
+  color: var(--c-text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+
+.popup-bookmark-folder i {
+  flex-shrink: 0;
+  font-size: 10px;
+  color: var(--c-folder);
+}
+
+.search-hit {
+  border-radius: 3px;
+  background: rgba(245, 158, 11, 0.22);
+  color: inherit;
+  padding: 0 1px;
+}
+
 .popup-bookmark-actions {
   display: flex;
   gap: 2px;
@@ -535,8 +580,9 @@ body.popup-mode .popup-view {
 /* 小窗语言按钮 */
 .popup-footer #btn-popup-lang {
   width: auto;
-  padding: 0 6px;
-  gap: 4px;
+  min-width: 50px;
+  padding: 0 8px;
+  gap: 6px;
   font-size: 12px;
 }
 
@@ -749,30 +795,37 @@ body.fullscreen-mode .fullscreen-view {
 
 /* ====== 按钮样式系统 ====== */
 .icon-btn {
-  background: none;
-  border: none;
-  width: 32px;
-  height: 32px;
-  display: flex;
+  background: transparent;
+  border: 1px solid transparent;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-md);
   color: var(--c-text-secondary);
   font-size: 14px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
 }
 
 .icon-btn:hover {
   color: var(--c-primary);
   background: var(--c-primary-light);
+  border-color: var(--c-primary-focus);
+}
+
+.icon-btn:active {
+  box-shadow: inset 0 0 0 1px var(--c-primary-focus);
 }
 
 .btn-primary {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 16px;
+  min-height: 36px;
+  padding: 0 16px;
   background: var(--c-primary);
   color: var(--c-text-inverse);
   border: none;
@@ -780,27 +833,26 @@ body.fullscreen-mode .fullscreen-view {
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
   white-space: nowrap;
-  box-shadow: 0 1px 3px rgba(91, 95, 199, 0.25);
+  box-shadow: 0 1px 3px rgba(48, 92, 82, 0.24);
 }
 
 .btn-primary:hover {
   background: var(--c-primary-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(91, 95, 199, 0.3);
+  box-shadow: 0 4px 12px rgba(48, 92, 82, 0.26);
 }
 
 .btn-primary:active {
-  transform: translateY(0);
-  box-shadow: 0 1px 2px rgba(91, 95, 199, 0.2);
+  box-shadow: 0 1px 2px rgba(48, 92, 82, 0.22);
 }
 
 .btn-ghost {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 6px 13px;
+  min-height: 36px;
+  padding: 0 13px;
   background: transparent;
   color: var(--c-text-secondary);
   border: 1px solid var(--c-border);
@@ -808,7 +860,7 @@ body.fullscreen-mode .fullscreen-view {
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
   white-space: nowrap;
 }
 
@@ -827,7 +879,8 @@ body.fullscreen-mode .fullscreen-view {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 7px 16px;
+  min-height: 36px;
+  padding: 0 16px;
   background: var(--c-error);
   color: #fff;
   border: none;
@@ -835,7 +888,7 @@ body.fullscreen-mode .fullscreen-view {
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: filter 0.15s ease, box-shadow 0.15s ease;
 }
 
 .btn-danger:hover {
@@ -1019,14 +1072,19 @@ input[type="checkbox"] {
 }
 
 .table-action-btn {
-  background: none;
-  border: none;
+  background: transparent;
+  border: 1px solid transparent;
   color: var(--c-text-tertiary);
   cursor: pointer;
-  padding: 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
   border-radius: var(--radius-sm);
   font-size: 13px;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, opacity 0.15s ease;
   opacity: 0;
 }
 
@@ -1037,6 +1095,7 @@ tr:hover .table-action-btn {
 .table-action-btn:hover {
   color: var(--c-primary);
   background: var(--c-primary-light);
+  border-color: var(--c-primary-focus);
 }
 
 .table-action-btn.delete:hover {
@@ -1317,6 +1376,9 @@ tr:hover .table-action-btn {
 
 /* ====== Focus 样式（无障碍） ====== */
 .icon-btn:focus-visible,
+.btn-expand:focus-visible,
+.folder-action-btn:focus-visible,
+.table-action-btn:focus-visible,
 .btn-primary:focus-visible,
 .btn-ghost:focus-visible,
 .btn-danger:focus-visible,

@@ -96,8 +96,10 @@ const i18n = (() => {
   async function init() {
     try {
       const r = await chrome.storage.local.get('language');
-      if (r.language && dict[r.language]) currentLang = r.language;
-    } catch (e) {}
+      if (r.language && dict[r.language]) {currentLang = r.language;}
+    } catch (e) {
+      console.warn('Failed to load language setting:', e.message);
+    }
   }
 
   async function set(lang) {
@@ -129,6 +131,7 @@ const state = {
   bookmarks: [],
   folders: [],
   filtered: [],
+  searchIndex: new Map(),
   selected: new Set(),
   currentFolder: null,
   searchQuery: '',
@@ -154,12 +157,12 @@ const SYSTEM_FOLDER_NAMES_MAP = {
 
 // 根据文件夹名获取翻译（case-insensitive）
 function getSystemFolderI18nKey(title) {
-  if (!title) return null;
+  if (!title) {return null;}
   const lower = title.trim().toLowerCase();
-  if (SYSTEM_FOLDER_NAMES_MAP[lower]) return SYSTEM_FOLDER_NAMES_MAP[lower];
-  if (lower.includes('favorites bar') || lower.includes('bookmarks bar')) return 'folderBookmarksBar';
-  if (lower.startsWith('other ')) return 'folderOtherBookmarks';
-  if (lower.startsWith('mobile ')) return 'folderMobileBookmarks';
+  if (SYSTEM_FOLDER_NAMES_MAP[lower]) {return SYSTEM_FOLDER_NAMES_MAP[lower];}
+  if (lower.includes('favorites bar') || lower.includes('bookmarks bar')) {return 'folderBookmarksBar';}
+  if (lower.startsWith('other ')) {return 'folderOtherBookmarks';}
+  if (lower.startsWith('mobile ')) {return 'folderMobileBookmarks';}
   return null;
 }
 
@@ -214,7 +217,7 @@ function openFullscreen() {
 function exitFullscreen() {
   // 在标签页中退出全屏 = 关闭当前标签页
   chrome.tabs.getCurrent((tab) => {
-    if (tab) chrome.tabs.remove(tab.id);
+    if (tab) {chrome.tabs.remove(tab.id);}
   });
 }
 
@@ -239,7 +242,7 @@ function applyTheme() {
   const icon = state.isFullscreen 
     ? $('#btn-fs-theme i') 
     : $('#btn-popup-theme i');
-  if (icon) icon.className = resolved === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+  if (icon) {icon.className = resolved === 'dark' ? 'fas fa-sun' : 'fas fa-moon';}
 }
 
 async function toggleTheme() {
@@ -267,7 +270,7 @@ function applyI18n() {
   });
   
   const label = state.isFullscreen ? $('#fs-lang-label') : $('#popup-lang-label');
-  if (label) label.textContent = i18n.lang() === 'en' ? 'EN' : '中';
+  if (label) {label.textContent = i18n.lang() === 'en' ? 'EN' : '中';}
   
   updateFolderTitle();
 }
@@ -275,6 +278,7 @@ function applyI18n() {
 async function toggleLanguage() {
   await i18n.toggle();
   applyI18n();
+  buildSearchIndex();
   renderAll();
 }
 
@@ -292,6 +296,7 @@ async function loadBookmarks() {
     if (r.success) {
       state.bookmarks = r.data;
       buildFolders();
+      buildSearchIndex();
       filterAndRender();
     }
   } catch (e) {
@@ -318,6 +323,30 @@ function buildFolders() {
   renderFolders();
 }
 
+function buildSearchIndex() {
+  state.searchIndex = new Map();
+  state.bookmarks.forEach(bookmark => {
+    if (!bookmark.url) {return;}
+
+    const folderPath = getBookmarkFolderPath(bookmark, { includeCurrent: true });
+    const domain = getUrlDomain(bookmark.url);
+    const tagsText = Array.isArray(bookmark.tags) ? bookmark.tags.join(' ') : '';
+    const title = bookmark.title || '';
+    const url = bookmark.url || '';
+
+    state.searchIndex.set(bookmark.id, {
+      title: normalizeSearchText(title),
+      url: normalizeSearchText(url),
+      domain: normalizeSearchText(domain),
+      tags: normalizeSearchText(tagsText),
+      folderPath: normalizeSearchText(folderPath),
+      all: normalizeSearchText(`${title} ${url} ${domain} ${tagsText} ${folderPath}`),
+      folderPathDisplay: folderPath,
+      domainDisplay: domain,
+    });
+  });
+}
+
 // 递归获取指定文件夹的所有后代文件夹ID
 function getAllDescendantFolderIds(folderId) {
   const ids = new Set();
@@ -327,7 +356,7 @@ function getAllDescendantFolderIds(folderId) {
         collectDescendants(node, ids);
         return true;
       }
-      if (node.children && walk(node.children)) return true;
+      if (node.children && walk(node.children)) {return true;}
     }
     return false;
   }
@@ -422,7 +451,7 @@ function renderFolders() {
   const container = state.isFullscreen 
     ? $('#fs-folder-tree') 
     : $('#popup-folder-tree');
-  if (!container) return;
+  if (!container) {return;}
   
   let html = `
     <div class="folder-item ${!state.currentFolder ? 'active' : ''}" data-id="all">
@@ -510,7 +539,7 @@ function renderFolders() {
     }
     
     item.addEventListener('click', (e) => {
-      if (e.target.closest('.folder-action-btn')) return;
+      if (e.target.closest('.folder-action-btn')) {return;}
       const id = item.dataset.id;
       state.currentFolder = id === 'all' ? null : id;
       renderFolders();
@@ -532,11 +561,7 @@ function filterAndRender() {
   
   // 搜索筛选
   if (state.searchQuery) {
-    const q = state.searchQuery.toLowerCase();
-    filtered = filtered.filter(b => 
-      (b.title && b.title.toLowerCase().includes(q)) ||
-      (b.url && b.url.toLowerCase().includes(q))
-    );
+    filtered = searchBookmarks(filtered, state.searchQuery);
   }
   
   state.filtered = filtered;
@@ -551,9 +576,114 @@ function filterAndRender() {
   updateFolderTitle();
 }
 
+function searchBookmarks(bookmarks, query) {
+  const tokens = getSearchTokens(query);
+  if (tokens.length === 0) {return bookmarks;}
+
+  return bookmarks
+    .map(bookmark => ({
+      bookmark,
+      score: scoreBookmarkSearch(bookmark, tokens),
+    }))
+    .filter(result => result.score > 0)
+    .sort((a, b) => {
+      if (b.score !== a.score) {return b.score - a.score;}
+      return (a.bookmark.title || '').localeCompare(b.bookmark.title || '');
+    })
+    .map(result => result.bookmark);
+}
+
+function scoreBookmarkSearch(bookmark, tokens) {
+  const index = state.searchIndex.get(bookmark.id);
+  if (!index) {return 0;}
+
+  let totalScore = 0;
+  for (const token of tokens) {
+    const tokenScore = getTokenSearchScore(index, token);
+    if (tokenScore === 0) {return 0;}
+    totalScore += tokenScore;
+  }
+
+  if (tokens.length > 1 && index.all.includes(tokens.join(' '))) {
+    totalScore += 20;
+  }
+
+  return totalScore;
+}
+
+function getTokenSearchScore(index, token) {
+  let score = 0;
+
+  if (index.title === token) {score += 120;}
+  if (index.domain === token) {score += 100;}
+  if (hasWordPrefix(index.title, token)) {score += 70;}
+  if (index.title.includes(token)) {score += 60;}
+  if (hasWordPrefix(index.tags, token)) {score += 55;}
+  if (index.tags.includes(token)) {score += 45;}
+  if (hasWordPrefix(index.domain, token)) {score += 42;}
+  if (index.domain.includes(token)) {score += 38;}
+  if (hasWordPrefix(index.folderPath, token)) {score += 34;}
+  if (index.folderPath.includes(token)) {score += 28;}
+  if (index.url.includes(token)) {score += 18;}
+
+  return score;
+}
+
+function hasWordPrefix(text, token) {
+  if (!text || !token) {return false;}
+  return text
+    .split(/[^a-z0-9\u4e00-\u9fa5]+/i)
+    .some(word => word.startsWith(token));
+}
+
+function getSearchTokens(query) {
+  return normalizeSearchText(query)
+    .split(/\s+/)
+    .filter(Boolean);
+}
+
+function normalizeSearchText(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/[\s/._~:?#[\]@!$&'()*+,;=%-]+/g, ' ')
+    .trim();
+}
+
+function highlightSearchText(value) {
+  const text = String(value || '');
+  const tokens = getSearchTokens(state.searchQuery)
+    .filter(token => token.length > 0)
+    .sort((a, b) => b.length - a.length);
+
+  if (tokens.length === 0) {return esc(text);}
+
+  let highlighted = esc(text);
+  tokens.forEach(token => {
+    const safeToken = esc(token);
+    if (!safeToken) {return;}
+
+    const regex = new RegExp(`(${escapeRegex(safeToken)})`, 'gi');
+    highlighted = highlighted.replace(regex, '<mark class="search-hit">$1</mark>');
+  });
+
+  return highlighted;
+}
+
+function escapeRegex(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function getUrlDomain(url) {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '');
+  } catch (e) {
+    return '';
+  }
+}
+
 function renderPopupList() {
   const container = $('#popup-bookmarks');
-  if (!container) return;
+  if (!container) {return;}
   
   if (state.filtered.length === 0) {
     container.innerHTML = `
@@ -568,12 +698,17 @@ function renderPopupList() {
   
   let html = '';
   state.filtered.forEach(bm => {
+    const index = state.searchIndex.get(bm.id);
+    const folderPath = index?.folderPathDisplay || '';
+    const showFolderPath = state.searchQuery && folderPath;
+
     html += `
       <div class="popup-bookmark-item" data-id="${bm.id}">
         ${getFaviconHtml(bm.url, bm.title, 'popup-bookmark-avatar')}
         <div class="popup-bookmark-info">
-          <div class="popup-bookmark-title">${esc(bm.title || 'Untitled')}</div>
-          <div class="popup-bookmark-url">${esc(bm.url)}</div>
+          <div class="popup-bookmark-title">${highlightSearchText(bm.title || 'Untitled')}</div>
+          <div class="popup-bookmark-url">${highlightSearchText(bm.url)}</div>
+          ${showFolderPath ? `<div class="popup-bookmark-folder"><i class="fas fa-folder-open"></i> ${highlightSearchText(folderPath)}</div>` : ''}
         </div>
         <div class="popup-bookmark-actions">
           <button class="icon-btn btn-edit" data-id="${bm.id}" title="Edit">
@@ -590,9 +725,9 @@ function renderPopupList() {
   
   container.querySelectorAll('.popup-bookmark-item').forEach(item => {
     item.addEventListener('click', (e) => {
-      if (e.target.closest('.icon-btn')) return;
+      if (e.target.closest('.icon-btn')) {return;}
       const bm = state.bookmarks.find(b => b.id === item.dataset.id);
-      if (bm) chrome.tabs.create({ url: bm.url });
+      if (bm) {chrome.tabs.create({ url: bm.url });}
     });
   });
   
@@ -615,7 +750,7 @@ function renderFullscreenTable() {
   const tbody = $('#fs-bookmark-tbody');
   const emptyState = $('#fs-empty-state');
   
-  if (!tbody) return;
+  if (!tbody) {return;}
   
   if (state.filtered.length === 0) {
     tbody.innerHTML = '';
@@ -628,9 +763,12 @@ function renderFullscreenTable() {
   let html = '';
   state.filtered.forEach(bm => {
     const isSelected = state.selected.has(bm.id);
+    const folderPath = state.currentFolder
+      ? getBookmarkFolderPath(bm)
+      : state.searchIndex.get(bm.id)?.folderPathDisplay || '';
+    const showFolderPath = folderPath && (state.currentFolder || state.searchQuery);
     
     // 显示子文件夹路径（当书签不在当前选中的直接子目录下时）
-    const folderPath = state.currentFolder ? getBookmarkFolderPath(bm) : '';
     
     html += `
       <tr data-id="${bm.id}" class="${isSelected ? 'selected' : ''}">
@@ -639,14 +777,14 @@ function renderFullscreenTable() {
           <div class="bookmark-info">
             ${getFaviconHtml(bm.url, bm.title, 'bookmark-avatar')}
             <div class="bookmark-name-cell">
-              <span class="bookmark-title">${esc(bm.title || 'Untitled')}</span>
-              ${folderPath ? `<span class="bookmark-folder-path"><i class="fas fa-folder-open"></i> ${esc(folderPath)}</span>` : ''}
+              <span class="bookmark-title">${highlightSearchText(bm.title || 'Untitled')}</span>
+              ${showFolderPath ? `<span class="bookmark-folder-path"><i class="fas fa-folder-open"></i> ${highlightSearchText(folderPath)}</span>` : ''}
             </div>
           </div>
         </td>
         <td class="col-url">
           <div class="bookmark-url-cell">
-            <a href="${esc(bm.url)}" target="_blank">${esc(bm.url)}</a>
+            <a href="${esc(bm.url)}" target="_blank">${highlightSearchText(bm.url)}</a>
           </div>
         </td>
         <td class="col-actions">
@@ -665,7 +803,7 @@ function renderFullscreenTable() {
   
   tbody.querySelectorAll('tr').forEach(row => {
     row.addEventListener('click', (e) => {
-      if (e.target.closest('a') || e.target.closest('.table-action-btn')) return;
+      if (e.target.closest('a') || e.target.closest('.table-action-btn')) {return;}
       
       const checkbox = row.querySelector('input[type="checkbox"]');
       checkbox.checked = !checkbox.checked;
@@ -697,7 +835,7 @@ function toggleSelection(id, selected) {
   }
   
   const row = document.querySelector(`tr[data-id="${id}"]`);
-  if (row) row.classList.toggle('selected', selected);
+  if (row) {row.classList.toggle('selected', selected);}
   
   updateSelectionUI();
 }
@@ -714,12 +852,12 @@ function updateSelectionUI() {
   }
   
   const batchBtn = $('#btn-fs-batch');
-  if (batchBtn) batchBtn.disabled = count === 0;
+  if (batchBtn) {batchBtn.disabled = count === 0;}
 }
 
 // ==================== 操作 ====================
 async function deleteBookmark(id) {
-  if (!confirm(i18n.t('confirmDelete'))) return;
+  if (!confirm(i18n.t('confirmDelete'))) {return;}
   
   try {
     const r = await sendMessage('DELETE_BOOKMARK', { bookmarkId: id });
@@ -734,7 +872,7 @@ async function deleteBookmark(id) {
 
 function openEditModal(id) {
   const bm = state.bookmarks.find(b => b.id === id);
-  if (!bm) return;
+  if (!bm) {return;}
   
   $('#edit-bookmark-id').value = id;
   $('#edit-title').value = bm.title || '';
@@ -769,9 +907,9 @@ function openNewModal() {
 
 // ==================== 文件夹操作 ====================
 function openEditFolderModal(folderId) {
-  if (SYSTEM_FOLDER_IDS.has(folderId)) return;
+  if (SYSTEM_FOLDER_IDS.has(folderId)) {return;}
   const folder = state.bookmarks.find(b => b.id === folderId);
-  if (!folder) return;
+  if (!folder) {return;}
   
   $('#edit-folder-id').value = folderId;
   $('#edit-folder-name').value = folder.title || '';
@@ -787,7 +925,7 @@ function openEditFolderModal(folderId) {
   parentSelect.value = folder.parentId || '';
   
   const submitBtn = $('#modal-folder .modal-footer .btn-primary');
-  if (submitBtn) submitBtn.textContent = i18n.t('save') || 'Save';
+  if (submitBtn) {submitBtn.textContent = i18n.t('save') || 'Save';}
   
   openModal($('#modal-folder'));
 }
@@ -805,7 +943,7 @@ function openNewFolderModal() {
   parentSelect.value = state.currentFolder || '';
   
   const submitBtn = $('#modal-folder .modal-footer .btn-primary');
-  if (submitBtn) submitBtn.textContent = i18n.t('save') || 'Create';
+  if (submitBtn) {submitBtn.textContent = i18n.t('save') || 'Create';}
   
   openModal($('#modal-folder'));
 }
@@ -817,7 +955,7 @@ async function saveFolder(e) {
   const title = $('#edit-folder-name').value.trim();
   const parentId = $('#edit-folder-parent').value || null;
   
-  if (!title) return;
+  if (!title) {return;}
   
   try {
     if (id) {
@@ -835,12 +973,12 @@ async function saveFolder(e) {
 }
 
 async function deleteFolder(folderId) {
-  if (SYSTEM_FOLDER_IDS.has(folderId)) return;
+  if (SYSTEM_FOLDER_IDS.has(folderId)) {return;}
   const folder = state.bookmarks.find(b => b.id === folderId);
-  if (!folder) return;
+  if (!folder) {return;}
   
   const msg = (i18n.t('confirmDeleteFolder') || 'Delete folder and all contents?') + `\n"${folder.title}"`;
-  if (!confirm(msg)) return;
+  if (!confirm(msg)) {return;}
   
   try {
     await sendMessage('DELETE_FOLDER', { folderId });
@@ -864,7 +1002,7 @@ async function saveBookmark(e) {
   const url = $('#edit-url').value.trim();
   const folderId = $('#edit-folder').value || null;
   
-  if (!title || !url) return;
+  if (!title || !url) {return;}
   
   try {
     const data = { title, url, parentId: folderId };
@@ -923,7 +1061,7 @@ function importBookmarks() {
 
 async function handleImport(e) {
   const file = e.target.files[0];
-  if (!file) return;
+  if (!file) {return;}
   
   try {
     const text = await file.text();
@@ -995,12 +1133,12 @@ function updateStats() {
 function updateResultCount() {
   const count = state.filtered.length;
   const label = state.isFullscreen ? $('#fs-result-count') : null;
-  if (label) label.textContent = `${count} ${i18n.lang() === 'zh' ? '个书签' : 'bookmarks'}`;
+  if (label) {label.textContent = `${count} ${i18n.lang() === 'zh' ? '个书签' : 'bookmarks'}`;}
 }
 
 function updateFolderTitle() {
   const titleEl = $('#fs-folder-title');
-  if (!titleEl) return;
+  if (!titleEl) {return;}
   if (!state.currentFolder) {
     titleEl.textContent = i18n.t('allBookmarks');
   } else {
@@ -1014,23 +1152,24 @@ function updateFolderTitle() {
 // 获取翻译后的文件夹名
 function getFolderTitle(folder) {
   const i18nKeyById = getSystemFolderI18nKeyById(folder.id);
-  if (i18nKeyById) return i18n.t(i18nKeyById);
+  if (i18nKeyById) {return i18n.t(i18nKeyById);}
   const i18nKey = getSystemFolderI18nKey(folder.title);
-  if (i18nKey) return i18n.t(i18nKey);
+  if (i18nKey) {return i18n.t(i18nKey);}
   return folder.title || '';
 }
 
 // 获取书签所属文件夹路径（从当前选中文件夹开始）
-function getBookmarkFolderPath(bookmark) {
-  if (!bookmark.parentId || bookmark.parentId === state.currentFolder) return '';
+function getBookmarkFolderPath(bookmark, options = {}) {
+  const stopAtFolderId = options.includeCurrent ? null : state.currentFolder;
+  if (!bookmark.parentId || bookmark.parentId === stopAtFolderId) {return '';}
   const parts = [];
   let currentId = bookmark.parentId;
   const visited = new Set();
   while (currentId && !visited.has(currentId)) {
     visited.add(currentId);
     const folder = state.bookmarks.find(b => b.id === currentId);
-    if (!folder) break;
-    if (currentId === state.currentFolder) break;
+    if (!folder) {break;}
+    if (currentId === stopAtFolderId) {break;}
     parts.unshift(getFolderTitle(folder));
     currentId = folder.parentId;
   }
@@ -1144,7 +1283,7 @@ function bindEvents() {
 
 // ==================== 工具函数 ====================
 function esc(str) {
-  if (!str) return '';
+  if (!str) {return '';}
   return str.replace(/[&<>"']/g, m => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
   })[m]);
