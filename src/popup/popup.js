@@ -1197,14 +1197,19 @@ function sendMessage(type, data = {}) {
 
 // ==================== 事件绑定 ====================
 function bindEvents() {
+  // 键盘导航
+  document.addEventListener('keydown', handleKeyboardNavigation);
+
   // 小窗模式事件
   if (!state.isFullscreen) {
     $('#btn-expand')?.addEventListener('click', openFullscreen);
     
+    const debouncedFilter = debounce(filterAndRender, 300);
+
     $('#popup-search-input')?.addEventListener('input', (e) => {
       state.searchQuery = e.target.value;
       $('#popup-clear-search').classList.toggle('hidden', !state.searchQuery);
-      filterAndRender();
+      debouncedFilter();
     });
     
     $('#popup-clear-search')?.addEventListener('click', () => {
@@ -1225,10 +1230,12 @@ function bindEvents() {
   if (state.isFullscreen) {
     $('#btn-fs-exit')?.addEventListener('click', exitFullscreen);
     
+    const debouncedFilterFs = debounce(filterAndRender, 300);
+
     $('#fs-search-input')?.addEventListener('input', (e) => {
       state.searchQuery = e.target.value;
       $('#fs-clear-search').classList.toggle('hidden', !state.searchQuery);
-      filterAndRender();
+      debouncedFilterFs();
     });
     
     $('#fs-clear-search')?.addEventListener('click', () => {
@@ -1287,4 +1294,65 @@ function esc(str) {
   return str.replace(/[&<>"']/g, m => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
   })[m]);
+}
+
+// ==================== 防抖函数 ====================
+function debounce(fn, delay) {
+  let timer = null;
+  return function(...args) {
+    if (timer) {clearTimeout(timer);}
+    timer = setTimeout(() => fn.apply(this, args), delay);
+  };
+}
+
+// ==================== 键盘导航 ====================
+let focusedIndex = -1;
+
+function handleKeyboardNavigation(e) {
+  // 只在非输入框时处理
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+    if (e.key === 'Escape') {
+      e.target.blur();
+    }
+    return;
+  }
+
+  const items = state.isFullscreen
+    ? $$('#fs-bookmark-tbody tr')
+    : $$('.popup-bookmark-item');
+
+  if (items.length === 0) {return;}
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    focusedIndex = Math.min(focusedIndex + 1, items.length - 1);
+    updateFocus(items);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    focusedIndex = Math.max(focusedIndex - 1, 0);
+    updateFocus(items);
+  } else if (e.key === 'Enter' && focusedIndex >= 0) {
+    e.preventDefault();
+    const item = items[focusedIndex];
+    if (item) {
+      const id = item.dataset.id;
+      const bm = state.bookmarks.find(b => b.id === id);
+      if (bm && bm.url) {
+        chrome.tabs.create({ url: bm.url });
+      }
+    }
+  } else if (e.key === 'Escape') {
+    closeAllModals();
+    focusedIndex = -1;
+    items.forEach(item => item.classList.remove('keyboard-focus'));
+  }
+}
+
+function updateFocus(items) {
+  items.forEach((item, i) => {
+    item.classList.toggle('keyboard-focus', i === focusedIndex);
+  });
+  if (focusedIndex >= 0 && items[focusedIndex]) {
+    items[focusedIndex].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
 }

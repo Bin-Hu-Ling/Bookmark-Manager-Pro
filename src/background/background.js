@@ -649,7 +649,10 @@ function notifyPopup(type, data) {
   });
 }
 
-// ========== Service Worker 保活 ==========
-setInterval(() => {
-  chrome.storage.local.get('lastCacheTime');
-}, 25000);
+// ========== Service Worker 保活 (使用 alarms API) ==========
+chrome.alarms.create('keepAlive', { periodInMinutes: 0.4 });
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === 'keepAlive') {
+    chrome.storage.local.get('lastCacheTime');
+  }
+});

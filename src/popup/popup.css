@@ -1388,6 +1388,18 @@ tr:hover .table-action-btn {
   outline-offset: 2px;
 }
 
+/* ====== 键盘导航焦点 ====== */
+.keyboard-focus {
+  outline: 2px solid var(--c-primary) !important;
+  outline-offset: -2px;
+  background: var(--c-primary-light) !important;
+}
+
+.popup-bookmark-item.keyboard-focus,
+tr.keyboard-focus {
+  background: var(--c-primary-light) !important;
+}
+
 /* ====== Reduced Motion ====== */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
