@@ -18,6 +18,7 @@ module.exports = {
         { from: 'manifest.dist.json', to: 'manifest.json' },
         { from: 'src/popup/popup.html', to: 'popup.html' },
         { from: 'src/popup/popup.css', to: 'popup.css' },
+        { from: 'src/popup/icons.css', to: 'icons.css' },
         { from: 'icons', to: 'icons' }
       ]
     })

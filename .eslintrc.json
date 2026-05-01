@@ -15,10 +15,12 @@
     "prefer-const": "warn",
     "eqeqeq": ["error", "always"],
     "curly": ["error", "all"],
+    "no-inner-declarations": "off",
     "semi": ["error", "always"],
     "quotes": ["error", "single", { "avoidEscape": true }]
   },
   "globals": {
-    "chrome": "readonly"
+    "chrome": "readonly",
+    "module": "readonly"
   }
 }

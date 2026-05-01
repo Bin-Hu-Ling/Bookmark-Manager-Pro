@@ -236,7 +236,7 @@ class StatsVisualizer {
   
   renderTypeChart() {
     const container = document.getElementById('type-chart');
-    if (!container || !this.stats) return;
+    if (!container || !this.stats) {return;}
     
     const bookmarks = this.stats.bookmarks || 0;
     const folders = this.stats.folders || 0;
@@ -301,7 +301,7 @@ class StatsVisualizer {
     
     const maxCount = Math.max(...topTags.map(tag => tag.count));
     
-    const bars = topTags.map((tag, index) => {
+    const bars = topTags.map((tag, _index) => {
       const height = maxCount > 0 ? (tag.count / maxCount * 80) : 0;
       const color = this.getTagColor(tag.name);
       
@@ -343,7 +343,7 @@ class StatsVisualizer {
     
     const maxCount = Math.max(...timelineData.map(([_, count]) => count));
     
-    const points = timelineData.map(([month, count], index) => {
+    const points = timelineData.map(([_month, count], index) => {
       const x = (index / (timelineData.length - 1)) * 100;
       const y = maxCount > 0 ? 100 - (count / maxCount * 100) : 100;
       
@@ -393,7 +393,7 @@ class StatsVisualizer {
   }
   
   truncateText(text, maxLength) {
-    if (text.length <= maxLength) return text;
+    if (text.length <= maxLength) {return text;}
     return text.substring(0, maxLength) + '...';
   }
   

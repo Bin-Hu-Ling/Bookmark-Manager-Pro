@@ -365,7 +365,7 @@ class TagManager {
   // UI Helper Methods
   
   renderTagList(container, options = {}) {
-    if (!container) return;
+    if (!container) {return;}
     
     const {
       showCount = true,
@@ -407,7 +407,7 @@ class TagManager {
   }
   
   renderTagInput(container, options = {}) {
-    if (!container) return;
+    if (!container) {return;}
     
     const {
       placeholder = 'Add tags...',
@@ -429,7 +429,6 @@ class TagManager {
     `;
     
     const input = container.querySelector('.tag-input');
-    const tagsContainer = container.querySelector('.tag-input-tags');
     const suggestionsContainer = container.querySelector('.tag-suggestions');
     
     if (onInput && input) {
@@ -463,7 +462,7 @@ class TagManager {
   }
   
   renderTagSuggestions(container, query) {
-    if (!container) return;
+    if (!container) {return;}
     
     const suggestions = this.searchTags(query).slice(0, 5);
     

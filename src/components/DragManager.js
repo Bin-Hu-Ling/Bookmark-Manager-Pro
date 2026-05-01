@@ -37,7 +37,7 @@ class DragManager {
   }
   
   enableForElement(element, data = {}) {
-    if (!element) return;
+    if (!element) {return;}
     
     element.classList.add('draggable');
     element.setAttribute('draggable', 'true');
@@ -48,7 +48,7 @@ class DragManager {
   }
   
   enableAsDropZone(element, options = {}) {
-    if (!element) return;
+    if (!element) {return;}
     
     element.classList.add('drop-zone');
     
@@ -64,7 +64,7 @@ class DragManager {
   
   handleMouseDown(e) {
     const draggable = e.target.closest(this.options.draggableSelector);
-    if (!draggable) return;
+    if (!draggable) {return;}
     
     this.isDragging = true;
     this.dragSource = draggable;
@@ -89,7 +89,7 @@ class DragManager {
   }
   
   handleMouseMove(e) {
-    if (!this.isDragging) return;
+    if (!this.isDragging) {return;}
     
     if (this.dragImage) {
       this.dragImage.style.left = e.clientX + 10 + 'px';
@@ -105,7 +105,7 @@ class DragManager {
   }
   
   handleMouseUp(e) {
-    if (!this.isDragging) return;
+    if (!this.isDragging) {return;}
     
     this.isDragging = false;
     
@@ -133,13 +133,13 @@ class DragManager {
   // Touch events
   
   handleTouchStart(e) {
-    if (e.touches.length !== 1) return;
+    if (e.touches.length !== 1) {return;}
     
     const touch = e.touches[0];
     const draggable = document.elementFromPoint(touch.clientX, touch.clientY)
       .closest(this.options.draggableSelector);
     
-    if (!draggable) return;
+    if (!draggable) {return;}
     
     this.isDragging = true;
     this.dragSource = draggable;
@@ -162,7 +162,7 @@ class DragManager {
   }
   
   handleTouchMove(e) {
-    if (!this.isDragging || e.touches.length !== 1) return;
+    if (!this.isDragging || e.touches.length !== 1) {return;}
     
     const touch = e.touches[0];
     
@@ -180,7 +180,7 @@ class DragManager {
   }
   
   handleTouchEnd(e) {
-    if (!this.isDragging) return;
+    if (!this.isDragging) {return;}
     
     this.isDragging = false;
     this.removeDragImage();
@@ -261,7 +261,7 @@ class DragManager {
     e.preventDefault();
     
     const dropZone = e.target.closest(this.options.dropZoneSelector);
-    if (!dropZone) return;
+    if (!dropZone) {return;}
     
     dropZone.classList.remove('drag-over');
     
@@ -330,7 +330,7 @@ class DragManager {
   // Bookmark-specific drag methods
   
   enableBookmarkDrag(bookmarkElement, bookmarkData) {
-    if (!bookmarkElement) return;
+    if (!bookmarkElement) {return;}
     
     const dragData = {
       type: 'bookmark',
@@ -353,7 +353,7 @@ class DragManager {
   }
   
   enableFolderDrop(folderElement, folderData) {
-    if (!folderElement) return;
+    if (!folderElement) {return;}
     
     const dropOptions = {
       type: 'folder',
@@ -368,7 +368,7 @@ class DragManager {
   }
   
   enableTrashDrop(trashElement) {
-    if (!trashElement) return;
+    if (!trashElement) {return;}
     
     const dropOptions = {
       type: 'trash',

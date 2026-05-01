@@ -85,7 +85,7 @@ class SearchManager {
   }
   
   extractWords(text) {
-    if (!text) return [];
+    if (!text) {return [];}
     
     // Split by non-alphanumeric characters, keep words with apostrophes and hyphens
     return text
@@ -229,14 +229,12 @@ class SearchManager {
       }
     });
     
-    // Query contains word (reverse partial)
-    if (queryWord.includes(word)) {
-      Object.keys(item.wordMap).forEach(word => {
-        if (queryWord.includes(word)) {
-          score += 2 * item.wordMap[word];
-        }
-      });
-    }
+    // Query contains indexed word (reverse partial)
+    Object.keys(item.wordMap).forEach(word => {
+      if (queryWord.includes(word)) {
+        score += 2 * item.wordMap[word];
+      }
+    });
     
     return score;
   }
@@ -334,7 +332,7 @@ class SearchManager {
     let highlighted = text;
     
     queryWords.forEach(queryWord => {
-      if (queryWord.length < 2) return;
+      if (queryWord.length < 2) {return;}
       
       const regex = new RegExp(`(${this.escapeRegex(queryWord)})`, 'gi');
       highlighted = highlighted.replace(regex, '<mark>$1</mark>');
@@ -371,7 +369,7 @@ class SearchManager {
     return results;
   }
   
-  searchByFolder(folderId, options = {}) {
+  searchByFolder(folderId, _options = {}) {
     if (!folderId) {
       return this.getAllBookmarks();
     }
@@ -383,7 +381,7 @@ class SearchManager {
     return results;
   }
   
-  searchByDate(range, options = {}) {
+  searchByDate(range, _options = {}) {
     const now = Date.now();
     let startDate, endDate;
     
@@ -422,7 +420,7 @@ class SearchManager {
     return results;
   }
   
-  searchByType(type, options = {}) {
+  searchByType(type, _options = {}) {
     if (type === 'bookmarks') {
       return this.bookmarks.filter(bookmark => bookmark.url);
     } else if (type === 'folders') {
@@ -512,7 +510,6 @@ class SearchManager {
     });
     
     // From tags
-    const allTags = new Set();
     this.bookmarks.forEach(bookmark => {
       if (bookmark.tags) {
         bookmark.tags.forEach(tag => {
@@ -529,7 +526,7 @@ class SearchManager {
   // UI Helper Methods
   
   renderSearchInput(container, options = {}) {
-    if (!container) return;
+    if (!container) {return;}
     
     const {
       placeholder = 'Search bookmarks...',
@@ -682,7 +679,7 @@ class SearchManager {
   }
   
   async renderSearchSuggestions(container, query) {
-    if (!container) return;
+    if (!container) {return;}
     
     const suggestions = await this.getSearchSuggestions(query, 8);
     
@@ -718,7 +715,7 @@ class SearchManager {
   }
   
   async renderSearchHistory(container) {
-    if (!container) return;
+    if (!container) {return;}
     
     const history = await this.getSearchHistory(8);
     
@@ -780,10 +777,10 @@ class SearchManager {
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
     
-    if (minutes < 1) return 'just now';
-    if (minutes < 60) return `${minutes}m ago`;
-    if (hours < 24) return `${hours}h ago`;
-    if (days < 7) return `${days}d ago`;
+    if (minutes < 1) {return 'just now';}
+    if (minutes < 60) {return `${minutes}m ago`;}
+    if (hours < 24) {return `${hours}h ago`;}
+    if (days < 7) {return `${days}d ago`;}
     
     return new Date(timestamp).toLocaleDateString();
   }

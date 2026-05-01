@@ -68,14 +68,12 @@ class BatchManager {
   
   // Batch operations
   
-  async moveSelectedToFolder(folderId, bookmarksData = []) {
+  async moveSelectedToFolder(folderId, _bookmarksData = []) {
     if (!this.hasSelection()) {
       throw new Error('No bookmarks selected');
     }
     
     const selectedIds = this.getSelectedIds();
-    const selectedBookmarks = bookmarksData.filter(b => selectedIds.includes(b.id));
-    
     this.currentOperation = {
       type: 'move',
       folderId,
@@ -123,7 +121,7 @@ class BatchManager {
     return results;
   }
   
-  async addTagsToSelected(tags, bookmarksData = []) {
+  async addTagsToSelected(tags, _bookmarksData = []) {
     if (!this.hasSelection()) {
       throw new Error('No bookmarks selected');
     }
@@ -157,7 +155,7 @@ class BatchManager {
         // Add each tag
         const tagResults = [];
         for (const tag of tags) {
-          const result = await this.addTagToBookmark(bookmarkId, tag);
+          await this.addTagToBookmark(bookmarkId, tag);
           tagResults.push({ tag, success: true });
         }
         
@@ -186,7 +184,7 @@ class BatchManager {
     return results;
   }
   
-  async removeTagsFromSelected(tags, bookmarksData = []) {
+  async removeTagsFromSelected(tags, _bookmarksData = []) {
     if (!this.hasSelection()) {
       throw new Error('No bookmarks selected');
     }
@@ -219,7 +217,7 @@ class BatchManager {
       try {
         const tagResults = [];
         for (const tag of tags) {
-          const result = await this.removeTagFromBookmark(bookmarkId, tag);
+          await this.removeTagFromBookmark(bookmarkId, tag);
           tagResults.push({ tag, success: true });
         }
         
@@ -248,14 +246,12 @@ class BatchManager {
     return results;
   }
   
-  async deleteSelected(bookmarksData = []) {
+  async deleteSelected(_bookmarksData = []) {
     if (!this.hasSelection()) {
       throw new Error('No bookmarks selected');
     }
     
     const selectedIds = this.getSelectedIds();
-    const selectedBookmarks = bookmarksData.filter(b => selectedIds.includes(b.id));
-    
     // Confirm deletion
     const confirmed = confirm(`Delete ${selectedIds.length} selected bookmark${selectedIds.length > 1 ? 's' : ''}?`);
     if (!confirmed) {
@@ -515,7 +511,7 @@ class BatchManager {
   // UI Helper Methods
   
   renderBatchActions(container, options = {}) {
-    if (!container) return;
+    if (!container) {return;}
     
     const {
       showMove = true,
@@ -609,7 +605,7 @@ class BatchManager {
   }
   
   renderProgress(container, operation) {
-    if (!container || !operation) return;
+    if (!container || !operation) {return;}
     
     const percent = Math.round((operation.completed / operation.total) * 100);
     

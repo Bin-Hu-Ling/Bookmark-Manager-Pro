@@ -108,8 +108,8 @@ class BookmarkTree {
         const aIsFolder = !a.url;
         const bIsFolder = !b.url;
         
-        if (aIsFolder && !bIsFolder) return -1;
-        if (!aIsFolder && bIsFolder) return 1;
+        if (aIsFolder && !bIsFolder) {return -1;}
+        if (!aIsFolder && bIsFolder) {return 1;}
         
         // Both are same type, sort by title
         return a.title.localeCompare(b.title);
@@ -121,7 +121,7 @@ class BookmarkTree {
   }
   
   renderTreeNodes(nodes, level = 0) {
-    if (!nodes || nodes.length === 0) return '';
+    if (!nodes || nodes.length === 0) {return '';}
     
     return nodes.map(node => this.renderTreeNode(node, level)).join('');
   }
@@ -346,7 +346,7 @@ class BookmarkTree {
   }
   
   removeEventListeners() {
-    this.eventListeners.forEach((listeners, key) => {
+    this.eventListeners.forEach((listeners, _key) => {
       listeners.forEach(({ element, event, handler }) => {
         element.removeEventListener(event, handler);
       });
@@ -356,7 +356,7 @@ class BookmarkTree {
   
   handleAction(itemId, action) {
     const item = this.findItemById(itemId);
-    if (!item) return;
+    if (!item) {return;}
     
     switch (action) {
       case 'open':

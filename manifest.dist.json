@@ -3,8 +3,7 @@
   "name": "Bookmark Manager Pro",
   "version": "2.0.0",
   "description": "Advanced bookmark manager with tags, search, dark theme, and batch operations",
-  "permissions": ["bookmarks", "storage", "tabs"],
-  "host_permissions": ["<all_urls>"],
+  "permissions": ["bookmarks", "storage", "downloads", "tabs"],
   "action": {
     "default_popup": "popup.html",
     "default_title": "Bookmark Manager",
@@ -38,7 +37,5 @@
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
   },
-  "web_accessible_resources": [
-    { "resources": ["icons/*", "popup.html"], "matches": ["<all_urls>"] }
-  ]
+  "web_accessible_resources": []
 }

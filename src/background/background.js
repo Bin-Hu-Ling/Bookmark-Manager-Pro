@@ -6,7 +6,7 @@
 
 // ========== 初始化 ==========
 chrome.runtime.onInstalled.addListener(async () => {
-  console.log('[BM] Extension installed/updated');
+  console.warn('[BM] Extension installed/updated');
   await initializeSettings();
   await initializeTagDatabase();
   await cacheBookmarks();
@@ -134,8 +134,8 @@ async function handleUpdateBookmark(message, sendResponse) {
   try {
     const { id, title, url, tags } = message;
     const updateData = {};
-    if (title !== undefined) updateData.title = title;
-    if (url !== undefined) updateData.url = url;
+    if (title !== undefined) {updateData.title = title;}
+    if (url !== undefined) {updateData.url = url;}
 
     const updated = Object.keys(updateData).length > 0
       ? await chrome.bookmarks.update(id, updateData)
@@ -292,7 +292,7 @@ async function handleDeleteTag(message, sendResponse) {
       const idx = tags.indexOf(name);
       if (idx !== -1) {
         tags.splice(idx, 1);
-        if (tags.length === 0) delete db.bookmarkTags[bid];
+        if (tags.length === 0) {delete db.bookmarkTags[bid];}
       }
     }
     await chrome.storage.local.set({ tagDatabase: db });
@@ -319,7 +319,7 @@ async function handleGetStatistics(message, sendResponse) {
     };
 
     flattened.forEach(bookmark => {
-      if (!bookmark.url) return;
+      if (!bookmark.url) {return;}
       stats.byFolder[bookmark.parentId] = (stats.byFolder[bookmark.parentId] || 0) + 1;
       if (bookmark.dateAdded) {
         const date = new Date(bookmark.dateAdded);
